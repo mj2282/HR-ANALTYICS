@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    .widget-btn.active {
+      background-color: var(--primary, #3b82f6);
+      color: var(--primary-foreground, #ffffff);
+      font-weight: 600;
+    }
+    .chart-fade {
+      animation: fadeIn 0.25s ease-in-out;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body class="bg-transparent text-[var(--foreground,#f8fafc)] antialiased p-2">
+
+  <div class="bg-[var(--card,#1e293b)] border border-[var(--border,#334155)] rounded-2xl p-4 shadow-md max-w-4xl mx-auto space-y-3.5">
+    
+    <!-- Top Header & Tabs -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 pb-2.5 border-b border-[var(--border,#334155)]">
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <h2 class="text-base font-bold tracking-tight text-[var(--foreground,#f8fafc)]">
+            HR Analytics Visual Command Center
+          </h2>
+          <span class="text-[10px] px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 font-semibold border border-blue-500/20">
+            N = 1,500 Hires
+          </span>
+        </div>
+        <p class="text-xs text-[var(--muted-foreground,#94a3b8)] mt-0.5">
+          Empirical workforce insights, flight risk indicators &amp; retention levers
+        </p>
+      </div>
+
+      <!-- Quick Switcher Tabs -->
+      <div class="flex flex-wrap gap-1 bg-[var(--background,#0f172a)] p-1 rounded-xl border border-[var(--border,#334155)] self-start sm:self-auto">
+        <button onclick="showView('dept')" id="btn-dept" class="widget-btn active px-2.5 py-1 text-xs rounded-lg transition-all text-[var(--muted-foreground,#94a3b8)]">
+          Dept Capacity
+        </button>
+        <button onclick="showView('risk')" id="btn-risk" class="widget-btn px-2.5 py-1 text-xs rounded-lg transition-all text-[var(--muted-foreground,#94a3b8)]">
+          Flight Risks
+        </button>
+        <button onclick="showView('absence')" id="btn-absence" class="widget-btn px-2.5 py-1 text-xs rounded-lg transition-all text-[var(--muted-foreground,#94a3b8)]">
+          Absence Curve
+        </button>
+        <button onclick="showView('reasons')" id="btn-reasons" class="widget-btn px-2.5 py-1 text-xs rounded-lg transition-all text-[var(--muted-foreground,#94a3b8)]">
+          Exit Reasons
+        </button>
+      </div>
+    </div>
+
+    <!-- Executive KPI Banner -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+      <div class="bg-[var(--background,#0f172a)] border border-[var(--border,#334155)] rounded-xl p-2.5 text-center">
+        <span class="text-[10px] text-[var(--muted-foreground,#94a3b8)] uppercase font-semibold">Active Headcount</span>
+        <div class="text-lg font-bold text-white mt-0.5">1,237 <span class="text-[10px] text-emerald-400 font-normal">(82.5%)</span></div>
+      </div>
+
+      <div class="bg-[var(--background,#0f172a)] border border-[var(--border,#334155)] rounded-xl p-2.5 text-center">
+        <span class="text-[10px] text-[var(--muted-foreground,#94a3b8)] uppercase font-semibold">Overall Attrition</span>
+        <div class="text-lg font-bold text-rose-400 mt-0.5">17.5% <span class="text-[10px] text-rose-300 font-normal">(263 exits)</span></div>
+      </div>
+
+      <div class="bg-[var(--background,#0f172a)] border border-[var(--border,#334155)] rounded-xl p-2.5 text-center">
+        <span class="text-[10px] text-[var(--muted-foreground,#94a3b8)] uppercase font-semibold">Overtime Flight Risk</span>
+        <div class="text-lg font-bold text-amber-400 mt-0.5">26.4% <span class="text-[10px] text-amber-300 font-normal">(1.93x surge)</span></div>
+      </div>
+
+      <div class="bg-[var(--background,#0f172a)] border border-[var(--border,#334155)] rounded-xl p-2.5 text-center">
+        <span class="text-[10px] text-[var(--muted-foreground,#94a3b8)] uppercase font-semibold">Pre-Exit Absence</span>
+        <div class="text-lg font-bold text-purple-400 mt-0.5">3.10x <span class="text-[10px] text-purple-300 font-normal">(0.93 d/mo)</span></div>
+      </div>
+    </div>
+
+    <!-- Dynamic Visual Display Card -->
+    <div class="bg-[var(--background,#0f172a)] border border-[var(--border,#334155)] rounded-xl p-3 min-h-[220px] flex flex-col justify-center">
+
+      <!-- VIEW 1: Dept Capacity & Fulfillment -->
+      <div id="view-dept" class="chart-fade space-y-2">
+        <div class="flex items-center justify-between text-xs px-1">
+          <span class="font-semibold text-slate-200">Department Headcount: Target vs. Active Staffing</span>
+          <div class="flex items-center gap-3 text-[11px]">
+            <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm bg-blue-500"></span> Target</span>
+            <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm bg-emerald-500"></span> Active</span>
+          </div>
+        </div>
+
+        <svg viewBox="0 0 640 160" class="w-full h-auto text-xs font-sans select-none">
+          <!-- Grid Lines -->
+          <line x1="40" y1="20" x2="620" y2="20" stroke="var(--border,#334155)" stroke-dasharray="2 2" opacity="0.4"/>
+          <line x1="40" y1="70" x2="620" y2="70" stroke="var(--border,#334155)" stroke-dasharray="2 2" opacity="0.4"/>
+          <line x1="40" y1="120" x2="620" y2="120" stroke="var(--border,#334155)"/>
+
+          <!-- Y Axis Labels -->
+          <text x="32" y="24" fill="var(--muted-foreground,#94a3b8)" text-anchor="end" font-size="10">500</text>
+          <text x="32" y="74" fill="var(--muted-foreground,#94a3b8)" text-anchor="end" font-size="10">250</text>
+          <text x="32" y="124" fill="var(--muted-foreground,#94a3b8)" text-anchor="end" font-size="10">0</text>
+
+          <!-- Engineering: Target 472, Active 387 -->
+          <g transform="translate(60, 0)">
+            <rect x="0" y="26" width="18" height="94" fill="#3b82f6" rx="2"><title>Target: 472</title></rect>
+            <rect x="20" y="43" width="18" height="77" fill="#10b981" rx="2"><title>Active: 387</title></rect>
+            <text x="19" y="136" fill="var(--foreground,#f8fafc)" text-anchor="middle" font-size="10">Eng</text>
+            <text x="19" y="148" fill="#f43f5e" text-anchor="middle" font-size="9">-85 gap</text>
+          </g>
+
+          <!-- Sales: Target 215, Active 155 -->
+          <g transform="translate(135, 0)">
+            <rect x="0" y="77" width="18" height="43" fill="#3b82f6" rx="2"><title>Target: 215</title></rect>
+            <rect x="20" y="89" width="18" height="31" fill="#10b981" rx="2"><title>Active: 155</title></rect>
+            <text x="19" y="136" fill="var(--foreground,#f8fafc)" text-anchor="middle" font-size="10">Sales</text>
+            <text x="19" y="148" fill="#f43f5e" text-anchor="middle" font-size="9">-60 gap</text>
+          </g>
+
+          <!-- Support: Target 200, Active 170 -->
+          <g transform="translate(210, 0)">
+            <rect x="0" y="80" width="18" height="40" fill="#3b82f6" rx="2"><title>Target: 200</title></rect>
+            <rect x="20" y="86" width="18" height="34" fill="#10b981" rx="2"><title>Active: 170</title></rect>
+            <text x="19" y="136" fill="var(--foreground,#f8fafc)" text-anchor="middle" font-size="10">Support</text>
+            <text x="19" y="148" fill="#f43f5e" text-anchor="middle" font-size="9">-30 gap</text>
+          </g>
+
+          <!-- Ops: Target 155, Active 118 -->
+          <g transform="translate(285, 0)">
+            <rect x="0" y="89" width="18" height="31" fill="#3b82f6" rx="2"><title>Target: 155</title></rect>
+            <rect x="20" y="96" width="18" height="24" fill="#10b981" rx="2"><title>Active: 118</title></rect>
+            <text x="19" y="136" fill="var(--foreground,#f8fafc)" text-anchor="middle" font-size="10">Ops</text>
+            <text x="19" y="148" fill="#f43f5e" text-anchor="middle" font-size="9">-37 gap</text>
+          </g>
+
+          <!-- Data: Target 140, Active 117 -->
+          <g transform="translate(360, 0)">
+            <rect x="0" y="92" width="18" height="28" fill="#3b82f6" rx="2"><title>Target: 140</title></rect>
+            <rect x="20" y="97" width="18" height="23" fill="#10b981" rx="2"><title>Active: 117</title></rect>
+            <text x="19" y="136" fill="var(--foreground,#f8fafc)" text-anchor="middle" font-size="10">Data</text>
+            <text x="19" y="148" fill="#f43f5e" text-anchor="middle" font-size="9">-23 gap</text>
+          </g>
+
+          <!-- Marketing: Target 105, Active 82 -->
+          <g transform="translate(435, 0)">
+            <rect x="0" y="99" width="18" height="21" fill="#3b82f6" rx="2"><title>Target: 105</title></rect>
+            <rect x="20" y="104" width="18" height="16" fill="#10b981" rx="2"><title>Active: 82</title></rect>
+            <text x="19" y="136" fill="var(--foreground,#f8fafc)" text-anchor="middle" font-size="10">Mktg</text>
+            <text x="19" y="148" fill="#f43f5e" text-anchor="middle" font-size="9">-23 gap</text>
+          </g>
+
+          <!-- Finance: Target 100, Active 82 -->
+          <g transform="translate(510, 0)">
+            <rect x="0" y="100" width="18" height="20" fill="#3b82f6" rx="2"><title>Target: 100</title></rect>
+            <rect x="20" y="104" width="18" height="16" fill="#10b981" rx="2"><title>Active: 82</title></rect>
+            <text x="19" y="136" fill="var(--foreground,#f8fafc)" text-anchor="middle" font-size="10">Fin</text>
+            <text x="19" y="148" fill="#f43f5e" text-anchor="middle" font-size="9">-18 gap</text>
+          </g>
+        </svg>
+      </div>
+
+      <!-- VIEW 2: Flight Risk Factors -->
+      <div id="view-risk" class="hidden chart-fade space-y-2.5 py-1">
+        <div class="text-xs font-semibold text-slate-200 px-1">Turnover Multipliers across Employee Cohorts</div>
+        
+        <div class="space-y-2">
+          <div>
+            <div class="flex justify-between text-xs mb-0.5">
+              <span>Overtime (Yes vs No)</span>
+              <span class="font-bold text-rose-400">26.4% vs 13.6% (1.93x higher)</span>
+            </div>
+            <div class="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
+              <div class="bg-rose-500 h-2 rounded-full" style="width: 26.4%"></div>
+            </div>
+          </div>
+
+          <div>
+            <div class="flex justify-between text-xs mb-0.5">
+              <span>Job Level L1 (Entry) vs L4 (Senior)</span>
+              <span class="font-bold text-amber-400">25.6% vs 15.5% (1.65x higher)</span>
+            </div>
+            <div class="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
+              <div class="bg-amber-500 h-2 rounded-full" style="width: 25.6%"></div>
+            </div>
+          </div>
+
+          <div>
+            <div class="flex justify-between text-xs mb-0.5">
+              <span>Sales Department vs Org Average</span>
+              <span class="font-bold text-orange-400">25.1% vs 17.5%</span>
+            </div>
+            <div class="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
+              <div class="bg-orange-500 h-2 rounded-full" style="width: 25.1%"></div>
+            </div>
+          </div>
+
+          <div>
+            <div class="flex justify-between text-xs mb-0.5">
+              <span>Work Mode Buffer (Remote vs Hybrid)</span>
+              <span class="font-bold text-emerald-400">14.3% vs 19.7% (-27% risk in remote)</span>
+            </div>
+            <div class="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
+              <div class="bg-emerald-500 h-2 rounded-full" style="width: 14.3%"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- VIEW 3: Absenteeism Flare -->
+      <div id="view-absence" class="hidden chart-fade space-y-2">
+        <div class="flex items-center justify-between text-xs px-1">
+          <span class="font-semibold text-slate-200">12-Month Unplanned Absence Trajectory per Employee</span>
+          <div class="flex items-center gap-3 text-[11px]">
+            <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span> Exited (Surging)</span>
+            <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> Active (Stable)</span>
+          </div>
+        </div>
+
+        <svg viewBox="0 0 640 140" class="w-full h-auto text-xs font-sans select-none">
+          <line x1="40" y1="20" x2="620" y2="20" stroke="var(--border,#334155)" stroke-dasharray="2 2" opacity="0.4"/>
+          <line x1="40" y1="65" x2="620" y2="65" stroke="var(--border,#334155)" stroke-dasharray="2 2" opacity="0.4"/>
+          <line x1="40" y1="110" x2="620" y2="110" stroke="var(--border,#334155)"/>
+
+          <text x="32" y="24" fill="var(--muted-foreground,#94a3b8)" text-anchor="end" font-size="9">1.2d</text>
+          <text x="32" y="69" fill="var(--muted-foreground,#94a3b8)" text-anchor="end" font-size="9">0.6d</text>
+          <text x="32" y="114" fill="var(--muted-foreground,#94a3b8)" text-anchor="end" font-size="9">0.0d</text>
+
+          <!-- Active Line: flat ~0.3d (y ~ 90) -->
+          <polyline fill="none" stroke="#10b981" stroke-width="2.5" points="
+            50,88 100,89 150,87 200,88 250,89 300,88 350,88 400,89 450,88 500,87 550,88 600,88
+          "/>
+
+          <!-- Exited Line: surges from 0.7d (y=60) up to 1.1d (y=26) -->
+          <polyline fill="none" stroke="#f43f5e" stroke-width="2.5" points="
+            50,65 100,63 150,60 200,58 250,52 300,48 350,42 400,38 450,32 500,28 550,25 600,23
+          "/>
+
+          <circle cx="50" cy="65" r="3" fill="#f43f5e"/>
+          <circle cx="350" cy="42" r="3" fill="#f43f5e"/>
+          <circle cx="600" cy="23" r="4" fill="#f43f5e"/>
+
+          <rect x="460" y="12" width="145" height="18" fill="#f43f5e" rx="3" opacity="0.2"/>
+          <text x="532" y="24" fill="#f43f5e" text-anchor="middle" font-size="9" font-weight="bold">+210% Pre-Exit Spike</text>
+
+          <text x="50" y="125" fill="var(--muted-foreground,#94a3b8)" text-anchor="middle" font-size="9">Oct</text>
+          <text x="150" y="125" fill="var(--muted-foreground,#94a3b8)" text-anchor="middle" font-size="9">Dec</text>
+          <text x="250" y="125" fill="var(--muted-foreground,#94a3b8)" text-anchor="middle" font-size="9">Feb</text>
+          <text x="350" y="125" fill="var(--muted-foreground,#94a3b8)" text-anchor="middle" font-size="9">Apr</text>
+          <text x="450" y="125" fill="var(--muted-foreground,#94a3b8)" text-anchor="middle" font-size="9">Jun</text>
+          <text x="550" y="125" fill="var(--muted-foreground,#94a3b8)" text-anchor="middle" font-size="9">Aug</text>
+          <text x="600" y="125" fill="var(--muted-foreground,#94a3b8)" text-anchor="middle" font-size="9">Sep</text>
+        </svg>
+      </div>
+
+      <!-- VIEW 4: Exit Reasons -->
+      <div id="view-reasons" class="hidden chart-fade space-y-2 py-1">
+        <div class="flex items-center justify-between text-xs px-1">
+          <span class="font-semibold text-slate-200">Top Primary Stated Exit Drivers (263 Total Exits)</span>
+          <span class="text-[10px] text-rose-300 bg-rose-500/10 px-2 py-0.5 rounded border border-rose-500/20">61.6% Regrettable Loss</span>
+        </div>
+
+        <div class="space-y-1.5 text-xs">
+          <div class="flex items-center justify-between">
+            <span class="w-32 truncate">Better Compensation</span>
+            <div class="flex-1 mx-2 bg-slate-800 rounded-full h-2 overflow-hidden">
+              <div class="bg-blue-500 h-2 rounded-full" style="width: 23.6%"></div>
+            </div>
+            <span class="font-bold w-14 text-right">62 (24%)</span>
+          </div>
+
+          <div class="flex items-center justify-between">
+            <span class="w-32 truncate">Career Growth</span>
+            <div class="flex-1 mx-2 bg-slate-800 rounded-full h-2 overflow-hidden">
+              <div class="bg-indigo-500 h-2 rounded-full" style="width: 16.0%"></div>
+            </div>
+            <span class="font-bold w-14 text-right">42 (16%)</span>
+          </div>
+
+          <div class="flex items-center justify-between">
+            <span class="w-32 truncate">Manager Issues</span>
+            <div class="flex-1 mx-2 bg-slate-800 rounded-full h-2 overflow-hidden">
+              <div class="bg-rose-500 h-2 rounded-full" style="width: 8.4%"></div>
+            </div>
+            <span class="font-bold w-14 text-right text-rose-400">22 (8%)</span>
+          </div>
+
+          <div class="flex items-center justify-between">
+            <span class="w-32 truncate">Toxic Culture</span>
+            <div class="flex-1 mx-2 bg-slate-800 rounded-full h-2 overflow-hidden">
+              <div class="bg-amber-500 h-2 rounded-full" style="width: 7.2%"></div>
+            </div>
+            <span class="font-bold w-14 text-right">19 (7%)</span>
+          </div>
+
+          <div class="flex items-center justify-between">
+            <span class="w-32 truncate">Work-Life Balance</span>
+            <div class="flex-1 mx-2 bg-slate-800 rounded-full h-2 overflow-hidden">
+              <div class="bg-emerald-500 h-2 rounded-full" style="width: 7.2%"></div>
+            </div>
+            <span class="font-bold w-14 text-right">19 (7%)</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Strategic Prescriptive Footer -->
+    <div class="p-2.5 rounded-xl bg-blue-500/10 border border-blue-500/20 text-xs text-blue-300 flex items-center justify-between">
+      <span><strong>Strategic Recommendation:</strong> Cap mandatory overtime at 8 hrs/wk and deploy HRIS alert for &ge; 2 unplanned absences.</span>
+      <span class="text-[10px] font-bold text-white bg-blue-600 px-2 py-1 rounded whitespace-nowrap ml-2">Actionable SLA: 5 Days</span>
+    </div>
+
+  </div>
+
+  <script>
+    function showView(viewId) {
+      ['dept', 'risk', 'absence', 'reasons'].forEach(id => {
+        const el = document.getElementById('view-' + id);
+        const btn = document.getElementById('btn-' + id);
+        if (el) el.classList.add('hidden');
+        if (btn) btn.classList.remove('active');
+      });
+
+      const activeEl = document.getElementById('view-' + viewId);
+      const activeBtn = document.getElementById('btn-' + viewId);
+      if (activeEl) activeEl.classList.remove('hidden');
+      if (activeBtn) activeBtn.classList.add('active');
+    }
+  </script>
+</body>
+</html>
